@@ -6,3 +6,4 @@ dist
 *.local
 local-smoke.png
 tablet-smoke.png
+.vercel

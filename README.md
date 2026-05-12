@@ -36,4 +36,4 @@ Future versions can swap the local data module for SEC/company earnings data. If
 
 ## Deployment
 
-Vercel deployment URL: Pending deployment.
+Vercel deployment URL: https://earnie-rose.vercel.app
