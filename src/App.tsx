@@ -5,12 +5,10 @@ import { EarningsFlow } from './components/EarningsFlow';
 import { MetricToggle } from './components/MetricToggle';
 import { QuarterSelector } from './components/QuarterSelector';
 import { SegmentDetails } from './components/SegmentDetails';
-import { earningsData, quarters } from './data/earningsData';
+import { earningsData, quarterReportingPeriodIds, quarters } from './data/earningsData';
 import { secReportSources } from './data/secReportSources';
 import { formatRevenue } from './utils/format';
 import type { ValueMode } from './types';
-
-const quarterToReportingPeriodId = (quarter: string) => quarter.toLowerCase().replace(' ', '_');
 
 function App() {
   const [selectedCompanyId, setSelectedCompanyId] = useState(earningsData[0].id);
@@ -32,7 +30,7 @@ function App() {
   const sourceReport = secReportSources.find(
     (report) =>
       report.company_id === selectedCompany.id &&
-      report.reporting_period_id === quarterToReportingPeriodId(selectedQuarter),
+      report.reporting_period_id === quarterReportingPeriodIds[selectedQuarter],
   );
 
   const handleCompanyChange = (companyId: string) => {
@@ -119,8 +117,8 @@ function App() {
         </div>
 
         <footer className="rounded-[8px] border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-500 shadow-card">
-          Data Source: Mock financial data with SEC EDGAR filing links, replace with parsed
-          SEC/company filing values.
+          Data Source: SEC EDGAR XBRL calendar-quarter revenue totals; segment allocations are v1
+          structured estimates pending parsed segment disclosures.
         </footer>
       </div>
     </main>

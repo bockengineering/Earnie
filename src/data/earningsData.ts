@@ -1,3 +1,5 @@
+import { cyRevenueTotals } from './cyRevenueTotals';
+
 export type RevenueLine = {
   name: string;
   revenue: number;
@@ -33,7 +35,14 @@ type SegmentTemplate = {
   children: ChildTemplate[];
 };
 
-export const quarters = ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'] as const;
+export const quarters = ['Q1 CY 2025', 'Q2 CY 2025', 'Q3 CY 2025', 'Q4 CY 2025'] as const;
+
+export const quarterReportingPeriodIds: Record<(typeof quarters)[number], string> = {
+  'Q1 CY 2025': 'q1_2025',
+  'Q2 CY 2025': 'q2_2025',
+  'Q3 CY 2025': 'q3_2025',
+  'Q4 CY 2025': 'q4_2025',
+};
 
 const roundB = (value: number) => Math.round(value * 10) / 10;
 
@@ -80,14 +89,15 @@ const buildQuarter = (totalRevenue: number, segments: SegmentTemplate[]): Quarte
   };
 };
 
-// Mock quarterly totals and segment shares are intentionally centralized here.
-// Replace these templates with SEC/company filing data later without touching the UI.
+// Top-line company revenue totals come from SEC EDGAR XBRL calendar-quarter facts.
+// Segment and line-item templates remain centralized here so they can be swapped
+// for parsed company segment disclosures without changing the visualization layer.
 const buildCompany = (
   id: string,
   name: string,
   ticker: string,
   accentColor: string,
-  quarterlyTotals: number[],
+  quarterlyTotals: readonly number[],
   segments: SegmentTemplate[],
 ): Company => ({
   id,
@@ -512,14 +522,14 @@ const salesforceSegments: SegmentTemplate[] = [
 ];
 
 export const earningsData: Company[] = [
-  buildCompany('apple', 'Apple', 'AAPL', '#111827', [95.8, 101.4, 108.6, 122.2], appleSegments),
-  buildCompany('microsoft', 'Microsoft', 'MSFT', '#2563eb', [61.9, 64.7, 67.8, 70.1], microsoftSegments),
-  buildCompany('alphabet', 'Alphabet', 'GOOGL', '#4285f4', [80.5, 84.2, 88.1, 92.6], alphabetSegments),
-  buildCompany('amazon', 'Amazon', 'AMZN', '#ff9900', [143.3, 148.0, 154.7, 169.8], amazonSegments),
-  buildCompany('meta', 'Meta', 'META', '#2563eb', [36.5, 39.1, 41.9, 45.2], metaSegments),
-  buildCompany('nvidia', 'Nvidia', 'NVDA', '#76b900', [26.0, 28.4, 31.2, 34.6], nvidiaSegments),
-  buildCompany('tesla', 'Tesla', 'TSLA', '#ef4444', [21.3, 23.0, 24.7, 26.4], teslaSegments),
-  buildCompany('netflix', 'Netflix', 'NFLX', '#e50914', [9.4, 9.8, 10.2, 10.9], netflixSegments),
-  buildCompany('adobe', 'Adobe', 'ADBE', '#ef4444', [5.2, 5.4, 5.7, 6.0], adobeSegments),
-  buildCompany('salesforce', 'Salesforce', 'CRM', '#0ea5e9', [9.1, 9.5, 9.9, 10.4], salesforceSegments),
+  buildCompany('apple', 'Apple', 'AAPL', '#111827', cyRevenueTotals.apple, appleSegments),
+  buildCompany('microsoft', 'Microsoft', 'MSFT', '#2563eb', cyRevenueTotals.microsoft, microsoftSegments),
+  buildCompany('alphabet', 'Alphabet', 'GOOGL', '#4285f4', cyRevenueTotals.alphabet, alphabetSegments),
+  buildCompany('amazon', 'Amazon', 'AMZN', '#ff9900', cyRevenueTotals.amazon, amazonSegments),
+  buildCompany('meta', 'Meta', 'META', '#2563eb', cyRevenueTotals.meta, metaSegments),
+  buildCompany('nvidia', 'Nvidia', 'NVDA', '#76b900', cyRevenueTotals.nvidia, nvidiaSegments),
+  buildCompany('tesla', 'Tesla', 'TSLA', '#ef4444', cyRevenueTotals.tesla, teslaSegments),
+  buildCompany('netflix', 'Netflix', 'NFLX', '#e50914', cyRevenueTotals.netflix, netflixSegments),
+  buildCompany('adobe', 'Adobe', 'ADBE', '#ef4444', cyRevenueTotals.adobe, adobeSegments),
+  buildCompany('salesforce', 'Salesforce', 'CRM', '#0ea5e9', cyRevenueTotals.salesforce, salesforceSegments),
 ];
