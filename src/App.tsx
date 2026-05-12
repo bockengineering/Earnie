@@ -6,8 +6,11 @@ import { MetricToggle } from './components/MetricToggle';
 import { QuarterSelector } from './components/QuarterSelector';
 import { SegmentDetails } from './components/SegmentDetails';
 import { earningsData, quarters } from './data/earningsData';
+import { secReportSources } from './data/secReportSources';
 import { formatRevenue } from './utils/format';
 import type { ValueMode } from './types';
+
+const quarterToReportingPeriodId = (quarter: string) => quarter.toLowerCase().replace(' ', '_');
 
 function App() {
   const [selectedCompanyId, setSelectedCompanyId] = useState(earningsData[0].id);
@@ -26,6 +29,11 @@ function App() {
   const selectedSegment =
     quarterData.segments.find((segment) => segment.name === selectedSegmentName) ??
     quarterData.segments[0];
+  const sourceReport = secReportSources.find(
+    (report) =>
+      report.company_id === selectedCompany.id &&
+      report.reporting_period_id === quarterToReportingPeriodId(selectedQuarter),
+  );
 
   const handleCompanyChange = (companyId: string) => {
     const nextCompany = earningsData.find((company) => company.id === companyId) ?? earningsData[0];
@@ -106,11 +114,13 @@ function App() {
             quarter={selectedQuarter}
             quarterData={quarterData}
             selectedSegment={selectedSegment}
+            sourceReport={sourceReport}
           />
         </div>
 
         <footer className="rounded-[8px] border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-500 shadow-card">
-          Data Source: Mock financial data, replace with SEC/company filings.
+          Data Source: Mock financial data with SEC EDGAR filing links, replace with parsed
+          SEC/company filing values.
         </footer>
       </div>
     </main>

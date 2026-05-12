@@ -1,12 +1,14 @@
 import { ArrowUpRight, Building2, Layers3 } from 'lucide-react';
 import type { Company, QuarterData, Segment } from '../data/earningsData';
 import { formatPercent, formatRevenue } from '../utils/format';
+import type { secReportSources } from '../data/secReportSources';
 
 type SegmentDetailsProps = {
   company: Company;
   quarter: string;
   quarterData: QuarterData;
   selectedSegment: Segment;
+  sourceReport?: (typeof secReportSources)[number];
 };
 
 export function SegmentDetails({
@@ -14,6 +16,7 @@ export function SegmentDetails({
   quarter,
   quarterData,
   selectedSegment,
+  sourceReport,
 }: SegmentDetailsProps) {
   const largestSegment = [...quarterData.segments].sort((a, b) => b.revenue - a.revenue)[0];
 
@@ -93,6 +96,32 @@ export function SegmentDetails({
           </p>
         </div>
       </section>
+
+      {sourceReport ? (
+        <section className="rounded-[8px] border border-slate-100 bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Source filing
+          </p>
+          <div className="mt-2 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-slate-950">
+                {sourceReport.form_type} · period ended {sourceReport.period_end_date}
+              </p>
+              <p className="mt-1 text-xs font-medium text-slate-500">
+                Filed {sourceReport.filing_date} · SEC EDGAR
+              </p>
+            </div>
+            <a
+              className="rounded-[8px] bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-950 hover:ring-slate-300"
+              href={sourceReport.primary_document_url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Open
+            </a>
+          </div>
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
