@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, WalletCards } from 'lucide-react';
+import { Building2, Database, Layers3, WalletCards } from 'lucide-react';
 import { CompanySelector } from './components/CompanySelector';
 import { EarningsFlow } from './components/EarningsFlow';
 import { MetricToggle } from './components/MetricToggle';
@@ -32,6 +32,7 @@ function App() {
       report.company_id === selectedCompany.id &&
       report.reporting_period_id === quarterReportingPeriodIds[selectedQuarter],
   );
+  const largestSegment = [...quarterData.segments].sort((a, b) => b.revenue - a.revenue)[0];
 
   const handleCompanyChange = (companyId: string) => {
     const nextCompany = earningsData.find((company) => company.id === companyId) ?? earningsData[0];
@@ -46,25 +47,30 @@ function App() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f8fb] text-slate-950">
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6 px-5 py-6 lg:px-8">
-        <header className="overflow-hidden rounded-[8px] border border-slate-200 bg-white shadow-soft">
-          <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-600">
-                <WalletCards size={17} />
-                Earnie
+    <main className="min-h-screen bg-[#f7f8fa] text-slate-950">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+        <header className="rounded-[8px] border border-slate-200 bg-white shadow-card">
+          <div
+            className="h-1 rounded-t-[8px]"
+            style={{ backgroundColor: selectedCompany.accentColor }}
+          />
+          <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              <span
+                className="flex size-12 shrink-0 items-center justify-center rounded-[8px] text-white shadow-sm"
+                style={{ backgroundColor: selectedCompany.accentColor }}
+              >
+                <WalletCards size={22} />
+              </span>
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-slate-400">Earnie</p>
+                <h1 className="text-2xl font-bold tracking-normal text-slate-950 md:text-3xl">
+                  {selectedCompany.name} revenue flow
+                </h1>
               </div>
-              <h1 className="text-4xl font-bold tracking-normal text-slate-950 md:text-5xl">
-                Earnings flows for public tech companies
-              </h1>
-              <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
-                Explore how quarterly revenue moves from the company total into segments and
-                segment-level revenue lines.
-              </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_minmax(160px,1fr)_auto]">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(230px,1fr)_minmax(170px,1fr)_auto]">
               <CompanySelector
                 companies={earningsData}
                 selectedCompanyId={selectedCompanyId}
@@ -82,24 +88,48 @@ function App() {
             </div>
           </div>
 
-          <div className="grid border-t border-slate-100 bg-slate-50/70 md:grid-cols-3">
+          <div className="grid border-t border-slate-100 bg-slate-50/80 md:grid-cols-4">
             {[
-              ['Company', `${selectedCompany.name} (${selectedCompany.ticker})`],
-              ['Quarter revenue', formatRevenue(quarterData.totalRevenue)],
-              ['Selected segment', selectedSegment.name],
-            ].map(([label, value]) => (
-              <div key={label} className="flex items-center justify-between gap-4 border-slate-100 px-6 py-4 md:border-r">
+              {
+                label: 'Company',
+                value: `${selectedCompany.name} (${selectedCompany.ticker})`,
+                icon: Building2,
+              },
+              {
+                label: 'Revenue',
+                value: formatRevenue(quarterData.totalRevenue),
+                icon: WalletCards,
+              },
+              {
+                label: 'Largest segment',
+                value: largestSegment.name,
+                icon: Layers3,
+              },
+              {
+                label: 'Source',
+                value: sourceReport ? sourceReport.form_type : 'SEC EDGAR',
+                icon: Database,
+              },
+            ].map(({ label, value, icon: Icon }) => (
+              <div
+                key={label}
+                className="flex min-h-24 items-center gap-4 border-slate-100 px-5 py-4 md:border-r"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-[8px] bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
+                  <Icon size={18} />
+                </span>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
-                  <p className="mt-1 text-lg font-bold text-slate-950">{value}</p>
+                  <p className="mt-1 line-clamp-2 text-base font-bold leading-snug text-slate-950">
+                    {value}
+                  </p>
                 </div>
-                <ChevronRight className="text-slate-300" size={19} />
               </div>
             ))}
           </div>
         </header>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
           <EarningsFlow
             company={selectedCompany}
             quarterData={quarterData}
@@ -116,8 +146,8 @@ function App() {
           />
         </div>
 
-        <footer className="rounded-[8px] border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-500 shadow-card">
-          Data Source: SEC EDGAR XBRL calendar-quarter revenue totals; segment allocations are v1
+        <footer className="rounded-[8px] border border-slate-200 bg-white px-5 py-3 text-xs font-semibold text-slate-500 shadow-card">
+          Data Source: SEC EDGAR XBRL calendar-quarter revenue totals. Segment allocations are v1
           structured estimates pending parsed segment disclosures.
         </footer>
       </div>

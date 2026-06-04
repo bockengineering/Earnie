@@ -17,14 +17,14 @@ const options: Array<{
 
 export function MetricToggle({ valueMode, onChange }: MetricToggleProps) {
   return (
-    <div className="flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+    <div className="flex rounded-[8px] border border-slate-200 bg-white p-1 shadow-sm">
       {options.map(({ mode, label, icon: Icon }) => {
         const isActive = valueMode === mode;
 
         return (
           <button
             key={mode}
-            className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+            className={`flex h-8 items-center gap-2 rounded-[6px] px-3 text-sm font-semibold transition ${
               isActive
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'

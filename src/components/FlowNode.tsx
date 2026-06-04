@@ -34,14 +34,17 @@ export function FlowNode({
   const dollars = formatRevenue(revenue);
   const primaryValue = valueMode === 'absolute' ? dollars : percent;
   const secondaryValue = valueMode === 'absolute' ? percent : dollars;
+  const stateClass = isSelected
+    ? 'border-slate-900 shadow-soft ring-4 ring-slate-100'
+    : 'border-slate-200';
+  const interactionClass = isInteractive
+    ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-soft'
+    : 'cursor-default';
 
   return (
     <button
-      className={`group absolute overflow-hidden rounded-[8px] border bg-white p-4 text-left shadow-card outline-none transition duration-200 ${
-        isSelected
-          ? 'border-slate-900 shadow-soft ring-4 ring-slate-200'
-          : 'border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-soft'
-      } ${isInteractive ? 'cursor-pointer' : 'cursor-default'}`}
+      aria-pressed={isInteractive ? isSelected : undefined}
+      className={`group absolute overflow-hidden rounded-[8px] border bg-white p-4 text-left shadow-card outline-none transition duration-200 focus-visible:ring-4 focus-visible:ring-slate-100 ${stateClass} ${interactionClass}`}
       style={{
         left: x,
         top: y,
@@ -52,14 +55,23 @@ export function FlowNode({
       onClick={onClick}
       disabled={!isInteractive}
     >
-      <span className="mb-3 block h-1.5 w-12 rounded-full" style={{ backgroundColor: color }} />
-      <span className="block text-[13px] font-semibold uppercase tracking-wide text-slate-400">
-        {secondaryValue}
+      <span
+        className="absolute inset-y-0 left-0 block w-1.5"
+        style={{ backgroundColor: color }}
+      />
+      <span className="flex h-full flex-col justify-between pl-2">
+        <span>
+          <span className="block text-[12px] font-bold uppercase tracking-wide text-slate-400">
+            {secondaryValue}
+          </span>
+          <span className="mt-1 block text-2xl font-bold leading-none text-slate-950">
+            {primaryValue}
+          </span>
+        </span>
+        <span className="block text-sm font-bold leading-snug text-slate-700 [overflow-wrap:anywhere]">
+          {name}
+        </span>
       </span>
-      <span className="mt-1 block text-xl font-bold leading-tight text-slate-950">
-        {primaryValue}
-      </span>
-      <span className="mt-2 block text-sm font-semibold leading-snug text-slate-700">{name}</span>
     </button>
   );
 }
