@@ -62,9 +62,16 @@ type FinancialTemplate = {
   expenseLines: ExpenseLineTemplate[];
 };
 
-export const quarters = ['Q1 CY 2025', 'Q2 CY 2025', 'Q3 CY 2025', 'Q4 CY 2025'] as const;
+export const calendarQuarters = [
+  'Q1 CY 2025',
+  'Q2 CY 2025',
+  'Q3 CY 2025',
+  'Q4 CY 2025',
+] as const;
+export const ltmPeriod = 'LTM CY 2025';
+export const quarters = [...calendarQuarters, ltmPeriod] as const;
 
-export const quarterReportingPeriodIds: Record<(typeof quarters)[number], string> = {
+export const quarterReportingPeriodIds: Partial<Record<(typeof quarters)[number], string>> = {
   'Q1 CY 2025': 'q1_2025',
   'Q2 CY 2025': 'q2_2025',
   'Q3 CY 2025': 'q3_2025',
@@ -177,10 +184,20 @@ const buildCompany = (
   ticker,
   accentColor,
   quarters: Object.fromEntries(
-    quarters.map((quarter, index) => [
-      quarter,
-      buildQuarter(quarterlyTotals[index], segments, financials),
-    ]),
+    [
+      ...calendarQuarters.map((quarter, index) => [
+        quarter,
+        buildQuarter(quarterlyTotals[index], segments, financials),
+      ]),
+      [
+        ltmPeriod,
+        buildQuarter(
+          roundB(quarterlyTotals.reduce((sum, totalRevenue) => sum + totalRevenue, 0)),
+          segments,
+          financials,
+        ),
+      ],
+    ],
   ),
 });
 

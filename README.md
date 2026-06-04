@@ -1,6 +1,6 @@
 # Earnie
 
-Earnie is a React dashboard that visualizes how public company quarterly revenue flows from business segments into revenue, gross profit, earnings, expenses, and expense line items.
+Earnie is a React dashboard that visualizes how public company quarterly and LTM revenue flows from business segments into revenue, gross profit, earnings, expenses, and expense line items.
 
 ## Tech Stack
 
@@ -32,11 +32,13 @@ npm run build
 npm run check:sankeys
 ```
 
-This verifies that segment revenue sums to total revenue, gross profit plus cost of revenue sums to revenue, earnings plus expenses sums to gross profit, and expense line items sum to expenses for every company-quarter pair.
+This verifies that segment revenue sums to total revenue, gross profit plus cost of revenue sums to revenue, earnings plus expenses sums to gross profit, and expense line items sum to expenses for every company-period pair.
 
 ## Current Data Source
 
 Top-line company revenue totals are pulled from SEC EDGAR XBRL facts for calendar-year 2025 quarters (`CY2025Q1` through `CY2025Q4`) where available. For Q4 and other cases where SEC exposes the value as annual/YTD facts, the ingestion script derives the calendar quarter as annual revenue minus prior year-to-date revenue from the same fiscal year.
+
+The `LTM CY 2025` period is calculated locally as the sum of Q1 through Q4 CY 2025.
 
 The v1 segment allocations, gross margin, earnings margin, and expense-line allocations remain structured estimates in `src/data/earningsData.ts` so the UI can render a complete flow while parsed disclosures are added. SEC filing source metadata lives in `src/data/secReportSources.ts`, and generated calendar-quarter totals live in `src/data/cyRevenueTotals.ts`.
 

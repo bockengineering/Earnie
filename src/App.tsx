@@ -27,11 +27,14 @@ function App() {
   const selectedSegment =
     quarterData.segments.find((segment) => segment.name === selectedSegmentName) ??
     quarterData.segments[0];
-  const sourceReport = secReportSources.find(
-    (report) =>
-      report.company_id === selectedCompany.id &&
-      report.reporting_period_id === quarterReportingPeriodIds[selectedQuarter],
-  );
+  const reportingPeriodId = quarterReportingPeriodIds[selectedQuarter];
+  const sourceReport = reportingPeriodId
+    ? secReportSources.find(
+        (report) =>
+          report.company_id === selectedCompany.id &&
+          report.reporting_period_id === reportingPeriodId,
+      )
+    : undefined;
   const { financials } = quarterData;
 
   const handleCompanyChange = (companyId: string) => {

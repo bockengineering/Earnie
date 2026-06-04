@@ -25,6 +25,7 @@ export function SegmentDetails({
     sourceReport?.revenue_derivation === 'annual_cy_minus_prior_ytd_same_fiscal_year'
       ? 'Derived from annual less YTD'
       : 'Direct CY XBRL fact';
+  const isLtmPeriod = quarter.startsWith('LTM');
 
   return (
     <aside className="flex h-full flex-col gap-4 rounded-[8px] border border-slate-200 bg-white p-5 shadow-card">
@@ -109,7 +110,7 @@ export function SegmentDetails({
         </div>
       </section>
 
-      {sourceReport ? (
+      {sourceReport || isLtmPeriod ? (
         <section className="rounded-[8px] border border-slate-100 bg-slate-50 p-4">
           <div className="flex items-start gap-3">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-[8px] bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
@@ -117,27 +118,36 @@ export function SegmentDetails({
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                Source filing
+                {sourceReport ? 'Source filing' : 'Period basis'}
               </p>
-              <div className="mt-2 flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold text-slate-950">
-                    {sourceReport.form_type} · period ended {sourceReport.period_end_date}
-                  </p>
+              {sourceReport ? (
+                <div className="mt-2 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-slate-950">
+                      {sourceReport.form_type} · period ended {sourceReport.period_end_date}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">
+                      Filed {sourceReport.filing_date} · {sourceDerivation}
+                    </p>
+                  </div>
+                  <a
+                    className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-950 hover:ring-slate-300"
+                    href={sourceReport.primary_document_url}
+                    rel="noreferrer"
+                    target="_blank"
+                    title="Open SEC filing"
+                  >
+                    <ExternalLink size={15} />
+                  </a>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <p className="text-sm font-bold text-slate-950">Sum of Q1-Q4 CY 2025</p>
                   <p className="mt-1 text-xs font-semibold text-slate-500">
-                    Filed {sourceReport.filing_date} · {sourceDerivation}
+                    LTM totals are aggregated from the four calendar quarters.
                   </p>
                 </div>
-                <a
-                  className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-950 hover:ring-slate-300"
-                  href={sourceReport.primary_document_url}
-                  rel="noreferrer"
-                  target="_blank"
-                  title="Open SEC filing"
-                >
-                  <ExternalLink size={15} />
-                </a>
-              </div>
+              )}
             </div>
           </div>
         </section>

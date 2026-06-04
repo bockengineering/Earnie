@@ -57,7 +57,7 @@ try {
     console.error(errors.join('\n'));
     process.exitCode = 1;
   } else {
-    console.log(`Validated ${earningsData.length * quarters.length} company-quarter Sankey balances.`);
+    console.log(`Validated ${earningsData.length * quarters.length} company-period Sankey balances.`);
   }
 } finally {
   await server.close();
