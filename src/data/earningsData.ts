@@ -10,9 +10,24 @@ export type Segment = RevenueLine & {
   children: RevenueLine[];
 };
 
+export type FinancialLine = {
+  name: string;
+  amount: number;
+  color: string;
+};
+
+export type FinancialBridge = {
+  grossProfit: number;
+  costOfRevenue: number;
+  earnings: number;
+  expenses: number;
+  expenseLines: FinancialLine[];
+};
+
 export type QuarterData = {
   totalRevenue: number;
   segments: Segment[];
+  financials: FinancialBridge;
 };
 
 export type Company = {
@@ -33,6 +48,18 @@ type SegmentTemplate = {
   share: number;
   color: string;
   children: ChildTemplate[];
+};
+
+type ExpenseLineTemplate = {
+  name: string;
+  share: number;
+  color: string;
+};
+
+type FinancialTemplate = {
+  grossMargin: number;
+  earningsMargin: number;
+  expenseLines: ExpenseLineTemplate[];
 };
 
 export const quarters = ['Q1 CY 2025', 'Q2 CY 2025', 'Q3 CY 2025', 'Q4 CY 2025'] as const;
@@ -60,7 +87,46 @@ const buildChildren = (segmentRevenue: number, children: ChildTemplate[]) => {
   return lines;
 };
 
-const buildQuarter = (totalRevenue: number, segments: SegmentTemplate[]): QuarterData => {
+const buildExpenseLines = (expenses: number, lines: ExpenseLineTemplate[]) => {
+  const builtLines = lines.map((line) => ({
+    name: line.name,
+    amount: roundB(expenses * line.share),
+    color: line.color,
+  }));
+
+  const delta = roundB(expenses - builtLines.reduce((sum, line) => sum + line.amount, 0));
+  if (builtLines.length > 0 && Math.abs(delta) >= 0.1) {
+    builtLines[builtLines.length - 1].amount = roundB(
+      builtLines[builtLines.length - 1].amount + delta,
+    );
+  }
+
+  return builtLines;
+};
+
+const buildFinancialBridge = (
+  totalRevenue: number,
+  template: FinancialTemplate,
+): FinancialBridge => {
+  const grossProfit = roundB(totalRevenue * template.grossMargin);
+  const costOfRevenue = roundB(totalRevenue - grossProfit);
+  const earnings = roundB(totalRevenue * template.earningsMargin);
+  const expenses = roundB(grossProfit - earnings);
+
+  return {
+    grossProfit,
+    costOfRevenue,
+    earnings,
+    expenses,
+    expenseLines: buildExpenseLines(expenses, template.expenseLines),
+  };
+};
+
+const buildQuarter = (
+  totalRevenue: number,
+  segments: SegmentTemplate[],
+  financials: FinancialTemplate,
+): QuarterData => {
   const builtSegments = segments.map((segment) => {
     const revenue = roundB(totalRevenue * segment.share);
     return {
@@ -83,15 +149,20 @@ const buildQuarter = (totalRevenue: number, segments: SegmentTemplate[]): Quarte
     );
   }
 
+  const displayedTotalRevenue = roundB(
+    builtSegments.reduce((sum, segment) => sum + segment.revenue, 0),
+  );
+
   return {
-    totalRevenue: roundB(builtSegments.reduce((sum, segment) => sum + segment.revenue, 0)),
+    totalRevenue: displayedTotalRevenue,
     segments: builtSegments,
+    financials: buildFinancialBridge(displayedTotalRevenue, financials),
   };
 };
 
 // Top-line company revenue totals come from SEC EDGAR XBRL calendar-quarter facts.
-// Segment and line-item templates remain centralized here so they can be swapped
-// for parsed company segment disclosures without changing the visualization layer.
+// Segment and expense bridge templates remain centralized here so they can be
+// swapped for parsed company disclosures without changing the visualization layer.
 const buildCompany = (
   id: string,
   name: string,
@@ -99,13 +170,17 @@ const buildCompany = (
   accentColor: string,
   quarterlyTotals: readonly number[],
   segments: SegmentTemplate[],
+  financials: FinancialTemplate,
 ): Company => ({
   id,
   name,
   ticker,
   accentColor,
   quarters: Object.fromEntries(
-    quarters.map((quarter, index) => [quarter, buildQuarter(quarterlyTotals[index], segments)]),
+    quarters.map((quarter, index) => [
+      quarter,
+      buildQuarter(quarterlyTotals[index], segments, financials),
+    ]),
   ),
 });
 
@@ -521,15 +596,176 @@ const salesforceSegments: SegmentTemplate[] = [
   },
 ];
 
+const expenseLines = (
+  researchAndDevelopment: number,
+  salesAndMarketing: number,
+  generalAndAdmin: number,
+  taxAndOther: number,
+): ExpenseLineTemplate[] => [
+  {
+    name: 'Research & development',
+    share: researchAndDevelopment,
+    color: '#6366f1',
+  },
+  {
+    name: 'Sales & marketing',
+    share: salesAndMarketing,
+    color: '#14b8a6',
+  },
+  {
+    name: 'General & admin',
+    share: generalAndAdmin,
+    color: '#f59e0b',
+  },
+  {
+    name: 'Tax and other',
+    share: taxAndOther,
+    color: '#64748b',
+  },
+];
+
+const financialTemplates: Record<string, FinancialTemplate> = {
+  apple: {
+    grossMargin: 0.47,
+    earningsMargin: 0.25,
+    expenseLines: expenseLines(0.32, 0.18, 0.18, 0.32),
+  },
+  microsoft: {
+    grossMargin: 0.69,
+    earningsMargin: 0.36,
+    expenseLines: expenseLines(0.28, 0.26, 0.16, 0.3),
+  },
+  alphabet: {
+    grossMargin: 0.58,
+    earningsMargin: 0.28,
+    expenseLines: expenseLines(0.29, 0.22, 0.15, 0.34),
+  },
+  amazon: {
+    grossMargin: 0.49,
+    earningsMargin: 0.09,
+    expenseLines: expenseLines(0.29, 0.31, 0.1, 0.3),
+  },
+  meta: {
+    grossMargin: 0.82,
+    earningsMargin: 0.38,
+    expenseLines: expenseLines(0.35, 0.22, 0.18, 0.25),
+  },
+  nvidia: {
+    grossMargin: 0.73,
+    earningsMargin: 0.52,
+    expenseLines: expenseLines(0.31, 0.18, 0.13, 0.38),
+  },
+  tesla: {
+    grossMargin: 0.18,
+    earningsMargin: 0.07,
+    expenseLines: expenseLines(0.19, 0.29, 0.2, 0.32),
+  },
+  netflix: {
+    grossMargin: 0.47,
+    earningsMargin: 0.24,
+    expenseLines: expenseLines(0.15, 0.31, 0.16, 0.38),
+  },
+  adobe: {
+    grossMargin: 0.88,
+    earningsMargin: 0.3,
+    expenseLines: expenseLines(0.3, 0.34, 0.16, 0.2),
+  },
+  salesforce: {
+    grossMargin: 0.77,
+    earningsMargin: 0.16,
+    expenseLines: expenseLines(0.21, 0.44, 0.16, 0.19),
+  },
+};
+
 export const earningsData: Company[] = [
-  buildCompany('apple', 'Apple', 'AAPL', '#111827', cyRevenueTotals.apple, appleSegments),
-  buildCompany('microsoft', 'Microsoft', 'MSFT', '#2563eb', cyRevenueTotals.microsoft, microsoftSegments),
-  buildCompany('alphabet', 'Alphabet', 'GOOGL', '#4285f4', cyRevenueTotals.alphabet, alphabetSegments),
-  buildCompany('amazon', 'Amazon', 'AMZN', '#ff9900', cyRevenueTotals.amazon, amazonSegments),
-  buildCompany('meta', 'Meta', 'META', '#2563eb', cyRevenueTotals.meta, metaSegments),
-  buildCompany('nvidia', 'Nvidia', 'NVDA', '#76b900', cyRevenueTotals.nvidia, nvidiaSegments),
-  buildCompany('tesla', 'Tesla', 'TSLA', '#ef4444', cyRevenueTotals.tesla, teslaSegments),
-  buildCompany('netflix', 'Netflix', 'NFLX', '#e50914', cyRevenueTotals.netflix, netflixSegments),
-  buildCompany('adobe', 'Adobe', 'ADBE', '#ef4444', cyRevenueTotals.adobe, adobeSegments),
-  buildCompany('salesforce', 'Salesforce', 'CRM', '#0ea5e9', cyRevenueTotals.salesforce, salesforceSegments),
+  buildCompany(
+    'apple',
+    'Apple',
+    'AAPL',
+    '#111827',
+    cyRevenueTotals.apple,
+    appleSegments,
+    financialTemplates.apple,
+  ),
+  buildCompany(
+    'microsoft',
+    'Microsoft',
+    'MSFT',
+    '#2563eb',
+    cyRevenueTotals.microsoft,
+    microsoftSegments,
+    financialTemplates.microsoft,
+  ),
+  buildCompany(
+    'alphabet',
+    'Alphabet',
+    'GOOGL',
+    '#4285f4',
+    cyRevenueTotals.alphabet,
+    alphabetSegments,
+    financialTemplates.alphabet,
+  ),
+  buildCompany(
+    'amazon',
+    'Amazon',
+    'AMZN',
+    '#ff9900',
+    cyRevenueTotals.amazon,
+    amazonSegments,
+    financialTemplates.amazon,
+  ),
+  buildCompany(
+    'meta',
+    'Meta',
+    'META',
+    '#2563eb',
+    cyRevenueTotals.meta,
+    metaSegments,
+    financialTemplates.meta,
+  ),
+  buildCompany(
+    'nvidia',
+    'Nvidia',
+    'NVDA',
+    '#76b900',
+    cyRevenueTotals.nvidia,
+    nvidiaSegments,
+    financialTemplates.nvidia,
+  ),
+  buildCompany(
+    'tesla',
+    'Tesla',
+    'TSLA',
+    '#ef4444',
+    cyRevenueTotals.tesla,
+    teslaSegments,
+    financialTemplates.tesla,
+  ),
+  buildCompany(
+    'netflix',
+    'Netflix',
+    'NFLX',
+    '#e50914',
+    cyRevenueTotals.netflix,
+    netflixSegments,
+    financialTemplates.netflix,
+  ),
+  buildCompany(
+    'adobe',
+    'Adobe',
+    'ADBE',
+    '#ef4444',
+    cyRevenueTotals.adobe,
+    adobeSegments,
+    financialTemplates.adobe,
+  ),
+  buildCompany(
+    'salesforce',
+    'Salesforce',
+    'CRM',
+    '#0ea5e9',
+    cyRevenueTotals.salesforce,
+    salesforceSegments,
+    financialTemplates.salesforce,
+  ),
 ];

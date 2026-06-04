@@ -18,6 +18,7 @@ export function SegmentDetails({
   selectedSegment,
   sourceReport,
 }: SegmentDetailsProps) {
+  const { financials } = quarterData;
   const largestSegment = [...quarterData.segments].sort((a, b) => b.revenue - a.revenue)[0];
   const selectedPercent = formatPercent(selectedSegment.revenue, quarterData.totalRevenue);
   const sourceDerivation =
@@ -46,7 +47,9 @@ export function SegmentDetails({
         <div className="mt-4 grid grid-cols-2 gap-3">
           {[
             ['Total revenue', formatRevenue(quarterData.totalRevenue)],
-            ['Segments', quarterData.segments.length],
+            ['Gross profit', formatRevenue(financials.grossProfit)],
+            ['Earnings', formatRevenue(financials.earnings)],
+            ['Expenses', formatRevenue(financials.expenses)],
           ].map(([label, value]) => (
             <div key={label} className="rounded-[8px] border border-slate-100 bg-slate-50 p-3">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
@@ -142,8 +145,53 @@ export function SegmentDetails({
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">Breakdown</h4>
-          <span className="text-xs font-bold text-slate-400">{selectedSegment.children.length} lines</span>
+          <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Expense bridge
+          </h4>
+          <span className="text-xs font-bold text-slate-400">
+            {financials.expenseLines.length} lines
+          </span>
+        </div>
+
+        {financials.expenseLines.map((line) => {
+          const percentOfExpenses = financials.expenses
+            ? (line.amount / financials.expenses) * 100
+            : 0;
+
+          return (
+            <div
+              key={line.name}
+              className="rounded-[8px] border border-slate-100 bg-white p-3 transition hover:border-slate-200 hover:shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm font-semibold text-slate-700">{line.name}</p>
+                <p className="text-sm font-bold text-slate-950">{formatRevenue(line.amount)}</p>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${percentOfExpenses}%`,
+                    backgroundColor: line.color,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs font-medium text-slate-400">
+                {formatPercent(line.amount, quarterData.totalRevenue)} of company revenue
+              </p>
+            </div>
+          );
+        })}
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Selected segment lines
+          </h4>
+          <span className="text-xs font-bold text-slate-400">
+            {selectedSegment.children.length} lines
+          </span>
         </div>
 
         {selectedSegment.children.map((child) => {

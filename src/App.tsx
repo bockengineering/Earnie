@@ -32,7 +32,7 @@ function App() {
       report.company_id === selectedCompany.id &&
       report.reporting_period_id === quarterReportingPeriodIds[selectedQuarter],
   );
-  const largestSegment = [...quarterData.segments].sort((a, b) => b.revenue - a.revenue)[0];
+  const { financials } = quarterData;
 
   const handleCompanyChange = (companyId: string) => {
     const nextCompany = earningsData.find((company) => company.id === companyId) ?? earningsData[0];
@@ -48,7 +48,7 @@ function App() {
 
   return (
     <main className="min-h-screen bg-[#f7f8fa] text-slate-950">
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-[1840px] flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
         <header className="rounded-[8px] border border-slate-200 bg-white shadow-card">
           <div
             className="h-1 rounded-t-[8px]"
@@ -91,23 +91,23 @@ function App() {
           <div className="grid border-t border-slate-100 bg-slate-50/80 md:grid-cols-4">
             {[
               {
-                label: 'Company',
-                value: `${selectedCompany.name} (${selectedCompany.ticker})`,
-                icon: Building2,
-              },
-              {
                 label: 'Revenue',
                 value: formatRevenue(quarterData.totalRevenue),
                 icon: WalletCards,
               },
               {
-                label: 'Largest segment',
-                value: largestSegment.name,
+                label: 'Gross profit',
+                value: formatRevenue(financials.grossProfit),
                 icon: Layers3,
               },
               {
-                label: 'Source',
-                value: sourceReport ? sourceReport.form_type : 'SEC EDGAR',
+                label: 'Earnings',
+                value: formatRevenue(financials.earnings),
+                icon: Building2,
+              },
+              {
+                label: 'Expenses',
+                value: formatRevenue(financials.expenses),
                 icon: Database,
               },
             ].map(({ label, value, icon: Icon }) => (
@@ -129,7 +129,7 @@ function App() {
           </div>
         </header>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
           <EarningsFlow
             company={selectedCompany}
             quarterData={quarterData}
@@ -147,8 +147,8 @@ function App() {
         </div>
 
         <footer className="rounded-[8px] border border-slate-200 bg-white px-5 py-3 text-xs font-semibold text-slate-500 shadow-card">
-          Data Source: SEC EDGAR XBRL calendar-quarter revenue totals. Segment allocations are v1
-          structured estimates pending parsed segment disclosures.
+          Data Source: SEC EDGAR XBRL calendar-quarter revenue totals. Segment allocations and
+          expense bridge values are v1 structured estimates pending parsed disclosures.
         </footer>
       </div>
     </main>

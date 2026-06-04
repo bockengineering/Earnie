@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "check:sankeys": "node scripts/check-sankey-balances.mjs",
     "ingest:sec-reports": "node scripts/ingest-sec-reports.mjs"
   },
   "dependencies": {

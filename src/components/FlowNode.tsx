@@ -40,21 +40,15 @@ export function FlowNode({
   const interactionClass = isInteractive
     ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-soft'
     : 'cursor-default';
-
-  return (
-    <button
-      aria-pressed={isInteractive ? isSelected : undefined}
-      className={`group absolute overflow-hidden rounded-[8px] border bg-white p-4 text-left shadow-card outline-none transition duration-200 focus-visible:ring-4 focus-visible:ring-slate-100 ${stateClass} ${interactionClass}`}
-      style={{
-        left: x,
-        top: y,
-        width,
-        height,
-      }}
-      type="button"
-      onClick={onClick}
-      disabled={!isInteractive}
-    >
+  const className = `group absolute overflow-hidden rounded-[8px] border bg-white p-4 text-left shadow-card outline-none transition duration-200 focus-visible:ring-4 focus-visible:ring-slate-100 ${stateClass} ${interactionClass}`;
+  const style = {
+    left: x,
+    top: y,
+    width,
+    height,
+  };
+  const content = (
+    <>
       <span
         className="absolute inset-y-0 left-0 block w-1.5"
         style={{ backgroundColor: color }}
@@ -72,6 +66,26 @@ export function FlowNode({
           {name}
         </span>
       </span>
+    </>
+  );
+
+  if (!isInteractive) {
+    return (
+      <div className={className} style={style}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      aria-pressed={isSelected}
+      className={className}
+      style={style}
+      type="button"
+      onClick={onClick}
+    >
+      {content}
     </button>
   );
 }
